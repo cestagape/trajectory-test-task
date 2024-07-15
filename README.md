@@ -1,5 +1,15 @@
-# Vue 3 + TypeScript + Vite
+# В данном репозитории представлен проект, сутью которого является отображение данных полученных из http-запроса. Данные представляют собой объекты типа 'автомобиль' с полями:<br/>
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+name: string;<br/>
+model: string;<br/>
+year: number;<br/>
+color: string;<br/>
+price: number;<br/>
+latitude: number;<br/>
+longitude: number.<br/>
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+Объекты отображаются в виде карточек, имеют возможность сортировки по году и цене автомобиля, а также методы к удалению конкретных объектов и изменению их марки, модели и стоимости. Также, объекты отображаются на карте.
+
+Проект был реализован с использованием фреймворка Vue 3 на языке TS и конфигурацией Composition API.<br/> 
+В качестве UI-библиотеки была использована библиотека 'bootstrap-vue-next', имплементирующая Bootstrap 5 и Vue 3 (link: https://github.com/bootstrap-vue-next/bootstrap-vue-next).<br/>
+Для работы с картой была использована библиотека 'leaflet' и OSM-карта. 

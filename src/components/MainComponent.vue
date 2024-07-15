@@ -21,9 +21,11 @@
             />
           </template>
           <template #cell(action)="row">
-            <BButton variant="primary" 
-            @click="toggleEdit(row.item)"
-            class="m-1">
+            <BButton
+              variant="primary"
+              @click="toggleEdit(row.item)"
+              class="m-1"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -51,10 +53,11 @@
                 />
               </svg>
             </BButton>
-            <BButton 
-            variant="danger" 
-            @click="toggleDelete(row.item)"
-            class="m-1">
+            <BButton
+              variant="danger"
+              @click="toggleDelete(row.item)"
+              class="m-1"
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -80,7 +83,7 @@
 
 <script setup lang="ts">
 import axios from "axios";
-import { reactive, ref, onMounted } from "vue";
+import { reactive, ref, onMounted, watch } from "vue";
 import * as L from "leaflet";
 import VehicleCard from "./VehicleVard.vue";
 
@@ -124,6 +127,7 @@ const fieldsTyped: Exclude<TableFieldRaw<Vehicle>, string>[] = [
 ];
 
 const itemsTyped: Vehicle[] = reactive([]);
+const markers = reactive<Map<number, L.Marker>>(new Map());
 const loading = ref(true);
 const map = ref<L.Map | null>(null);
 
@@ -143,24 +147,57 @@ const fetchVehicles = async () => {
 const addMarkersToMap = () => {
   if (map.value) {
     itemsTyped.forEach((vehicle) => {
-      L.marker([vehicle.latitude, vehicle.longitude])
+      const marker = L.marker([vehicle.latitude, vehicle.longitude])
         .addTo(map.value!)
         .bindPopup(`${vehicle.name} ${vehicle.model} (${vehicle.year})`)
         .openPopup();
+      markers.set(vehicle.id, marker);
     });
+  }
+};
+
+const updateMarker = (vehicle: Vehicle) => {
+  const marker = markers.get(vehicle.id);
+  if (marker) {
+    marker
+      .setLatLng([vehicle.latitude, vehicle.longitude])
+      .setPopupContent(`${vehicle.name} ${vehicle.model} (${vehicle.year})`);
   }
 };
 
 const toggleEdit = (vehicle: Vehicle) => {
   vehicle.isEditing = !vehicle.isEditing;
+  if (!vehicle.isEditing) {
+    updateMarker(vehicle);
+  }
 };
 
 const toggleDelete = (vehicle: Vehicle) => {
-  itemsTyped.splice(itemsTyped.indexOf(vehicle), 1);
+  const index = itemsTyped.indexOf(vehicle);
+  if (index !== -1) {
+    itemsTyped.splice(index, 1);
+    const marker = markers.get(vehicle.id);
+    if (marker && map.value) {
+      map.value.removeLayer(marker);
+      markers.delete(vehicle.id);
+    }
+  }
 };
 
+watch(
+  itemsTyped,
+  (newItems, oldItems) => {
+    newItems.forEach((vehicle, index) => {
+      if (vehicle !== oldItems[index]) {
+        updateMarker(vehicle);
+      }
+    });
+  },
+  { deep: true }
+);
+
 onMounted(() => {
-  map.value = L.map("map").setView([51.505, -0.09], 13);
+  map.value = L.map("map").setView([59.505, -30.09], 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
